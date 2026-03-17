@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-import 'screens/register_screen.dart';
+
+import 'pages/login_page.dart';
 
 void main() {
-  runApp(App());
+  runApp(const App());
 }
 
 class App extends StatelessWidget {
+  const App({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LoginPage(),
+      home: const LoginPage(),
       theme: ThemeData(
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.red,
-          foregroundColor: Colors.white
-        )
+          foregroundColor: Colors.white,
+        ),
       ),
     );
   }
