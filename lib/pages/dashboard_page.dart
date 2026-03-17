@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 
-class DashboardPage extends StatelessWidget {
+import '../models/asset_item.dart';
+import 'computer_hardware.dart';
+import 'furniture.dart';
+import 'sidebar.dart';
+
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
   static const _sidebarWidth = 280.0;
   static const _greenAccent = Color(0xff10b981);
+
+  AssetType _selectedAssetType = AssetType.computerHardware;
+
+  void _setAssetType(AssetType type) {
+    setState(() {
+      _selectedAssetType = type;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +32,23 @@ class DashboardPage extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: const Color(0xfff3f4f6),
-          drawer: isMobile ? Drawer(child: _DashboardSidebar()) : null,
+          drawer: isMobile
+              ? Drawer(
+                  child: Sidebar(
+                    selectedType: _selectedAssetType,
+                    onTypeSelected: _setAssetType,
+                  ),
+                )
+              : null,
           body: Row(
             children: [
               if (!isMobile)
                 SizedBox(
                   width: _sidebarWidth,
-                  child: _DashboardSidebar(),
+                  child: Sidebar(
+                    selectedType: _selectedAssetType,
+                    onTypeSelected: _setAssetType,
+                  ),
                 ),
               // Main content area
               Expanded(
@@ -145,7 +173,10 @@ class DashboardPage extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     flex: isNarrow ? 0 : 2,
-                                    child: _AssetsCard(),
+                                    child: _AssetsCard(
+                                      selectedType: _selectedAssetType,
+                                      onTypeChanged: _setAssetType,
+                                    ),
                                   ),
                                   SizedBox(width: isNarrow ? 0 : 24, height: isNarrow ? 24 : 0),
                                   Expanded(
@@ -170,221 +201,42 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _DashboardSidebar extends StatelessWidget {
-  const _DashboardSidebar();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xff0f766e),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xff34d399), Color(0xff059669)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.widgets_outlined, color: Colors.white, size: 28),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'AssetsDigital',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Central Section
-            _SidebarSection(label: 'CENTRAL'),
-            _SidebarItem(
-              icon: Icons.dashboard,
-              label: 'Dashboard',
-              active: true,
-            ),
-            _SidebarItem(
-              icon: Icons.notifications_none,
-              label: 'Notifications',
-            ),
-            _SidebarItem(
-              icon: Icons.chat_bubble_outline,
-              label: 'Chat',
-            ),
-            const SizedBox(height: 24),
-
-            // Workspace Section
-            _SidebarSection(label: 'WORKSPACE'),
-            _SidebarItem(
-              icon: Icons.folder_open,
-              label: 'Assets',
-              expandable: true,
-              children: const [
-                _SidebarSubItem(label: 'Computer Hardware'),
-                _SidebarSubItem(label: 'Furniture'),
-              ],
-            ),
-            const Spacer(),
-
-            // Bottom support button
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xff0f766e),
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
-                onPressed: () {},
-                icon: const Icon(Icons.support_agent_outlined),
-                label: const Text('Contact Support'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SidebarSection extends StatelessWidget {
-  final String label;
-
-  const _SidebarSection({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.65),
-          fontSize: 12,
-          letterSpacing: 0.5,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _SidebarItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  final bool expandable;
-  final List<Widget>? children;
-
-  const _SidebarItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-    this.expandable = false,
-    this.children,
+class _AssetsCard extends StatefulWidget {
+  const _AssetsCard({
+    required this.selectedType,
+    required this.onTypeChanged,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final tile = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Icon(icon, size: 22, color: active ? Colors.white : Colors.white70),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: active ? Colors.white : Colors.white70,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
-          ),
-          if (expandable)
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.white70,
-            ),
-        ],
-      ),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: active ? Colors.white.withOpacity(0.14) : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: tile,
-            onTap: () {},
-          ),
-        ),
-        if (expandable && children != null) ...children!,
-      ],
-    );
-  }
-}
-
-class _SidebarSubItem extends StatelessWidget {
-  final String label;
-
-  const _SidebarSubItem({required this.label});
+  final AssetType selectedType;
+  final ValueChanged<AssetType> onTypeChanged;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 54, top: 6, bottom: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: Colors.white54,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
+  State<_AssetsCard> createState() => _AssetsCardState();
 }
 
-class _AssetsCard extends StatelessWidget {
-  const _AssetsCard();
+class _AssetsCardState extends State<_AssetsCard> {
+  late AssetType _currentType;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentType = widget.selectedType;
+  }
+
+  @override
+  void didUpdateWidget(covariant _AssetsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedType != widget.selectedType) {
+      _currentType = widget.selectedType;
+    }
+  }
+
+  void _onTypeChanged(AssetType type) {
+    setState(() {
+      _currentType = type;
+    });
+    widget.onTypeChanged(type);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -409,109 +261,18 @@ class _AssetsCard extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 18),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xfff3f4f6),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                _TabButton(label: 'Recently added', active: true),
-                _TabButton(label: 'Computer Hardware'),
-                _TabButton(label: 'Furnitures'),
-              ],
-            ),
+          Expanded(
+            child: _currentType == AssetType.computerHardware
+                ? ComputerHardwareTable(
+                    selectedType: _currentType,
+                    onTypeChanged: _onTypeChanged,
+                  )
+                : FurnitureTable(
+                    selectedType: _currentType,
+                    onTypeChanged: _onTypeChanged,
+                  ),
           ),
-          const SizedBox(height: 18),
-          const Expanded(child: _AssetsTable()),
         ],
-      ),
-    );
-  }
-}
-
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool active;
-
-  const _TabButton({required this.label, this.active = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          color: active ? const Color(0xff10b981) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: active ? Colors.white : Colors.grey.shade700,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AssetsTable extends StatelessWidget {
-  const _AssetsTable();
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = [
-      ['Conveyor belt', 'Machinery', '10/02/2023', 'KES 320,500', 'Classroom 1'],
-      ['Company bus', 'Vehicles', '07/02/2023', 'KES 3,200,500', 'Classroom 2'],
-      ['Limans trademark', 'Intangible assets', '02/02/2023', 'KES 32,500', 'Classroom 3'],
-      ['Apparel warehouse', 'Fixed assets', '28/01/2023', 'KES 7,255,500', 'Classroom 4'],
-      ['Sanguine Apparel', 'Contracts', '15/01/2023', 'KES 85,500', 'Classroom 5'],
-    ];
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Material(
-        color: Colors.white,
-        child: ListView.separated(
-          itemCount: rows.length + 1,
-          separatorBuilder: (context, index) {
-            return const Divider(height: 1, indent: 16, endIndent: 16); 
-          },
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: const [
-                    Expanded(child: Text('Name', style: TextStyle(fontWeight: FontWeight.w600))),
-                    Expanded(child: Text('Section', style: TextStyle(fontWeight: FontWeight.w600))),
-                    Expanded(child: Text('Date registered', style: TextStyle(fontWeight: FontWeight.w600))),
-                    Expanded(child: Text('Value', style: TextStyle(fontWeight: FontWeight.w600))),
-                    Expanded(child: Text('Location', style: TextStyle(fontWeight: FontWeight.w600))),
-                  ],
-                ),
-              );
-            }
-
-            final row = rows[index - 1];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(child: Text(row[0], style: const TextStyle(fontWeight: FontWeight.w600))),
-                  Expanded(child: Text(row[1], style: const TextStyle(color: Colors.grey))),
-                  Expanded(child: Text(row[2], style: const TextStyle(color: Colors.grey))),
-                  Expanded(child: Text(row[3], style: const TextStyle(color: Colors.grey))),
-                  Expanded(child: Text(row[4], style: const TextStyle(color: Colors.grey))),
-                ],
-              ),
-            );
-          },
-        ),
       ),
     );
   }

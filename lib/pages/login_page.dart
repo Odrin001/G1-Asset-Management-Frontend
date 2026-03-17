@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'dashboard_page.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 
@@ -46,6 +47,11 @@ class _LoginPageState extends State<LoginPage> {
 
     // Simulated login
     print("Login success: $email");
+
+    // Navigate to dashboard (simulated successful login)
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const DashboardPage()),
+    );
   }
 
   @override
