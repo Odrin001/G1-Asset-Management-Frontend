@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class API {
@@ -28,7 +29,7 @@ class API {
         return false;
       }
     } on Exception catch (e) {
-      print('Exception details:\n $e');
+      debugPrint('Exception details:\n $e');
       throw Exception('Encountered an error on the server.');
     }
   }
@@ -53,7 +54,7 @@ class API {
         return false;
       }
     } on Exception catch (e) {
-      print('Exception details:\n $e');
+      debugPrint('Exception details:\n $e');
       throw Exception('Encountered an error on the server.');
     }
   }

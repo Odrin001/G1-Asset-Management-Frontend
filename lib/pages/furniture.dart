@@ -6,11 +6,21 @@ class FurnitureTable extends StatefulWidget {
   const FurnitureTable({
     super.key,
     required this.selectedType,
+    required this.searchQuery,
     required this.onTypeChanged,
+    required this.assets,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final AssetType selectedType;
+  final String searchQuery;
+  final List<AssetItem> assets;
   final ValueChanged<AssetType> onTypeChanged;
+  final VoidCallback onAdd;
+  final ValueChanged<AssetItem> onEdit;
+  final ValueChanged<AssetItem> onDelete;
 
   @override
   State<FurnitureTable> createState() => _FurnitureTableState();
@@ -34,9 +44,44 @@ class _FurnitureTableState extends State<FurnitureTable> {
   }
 
   List<AssetItem> get _items {
-    return _currentType == AssetType.computerHardware
-        ? AssetData.computerHardware
-        : AssetData.furniture;
+    final base = widget.assets;
+
+    final query = widget.searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return base;
+
+    return base.where((asset) {
+      final name = asset.name.toLowerCase();
+      final category = asset.category.toLowerCase();
+      final location = asset.location.toLowerCase();
+      return name.contains(query) || category.contains(query) || location.contains(query);
+    }).toList();
+  }
+
+  Future<void> _confirmDelete(AssetItem asset) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Delete asset'),
+              content: const Text('Are you sure you want to delete this asset? This cannot be undone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (confirmed) {
+      widget.onDelete(asset);
+    }
   }
 
   @override
@@ -53,6 +98,12 @@ class _FurnitureTableState extends State<FurnitureTable> {
                   'Furniture',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
+              ),
+              const SizedBox(width: 12),
+              TextButton.icon(
+                onPressed: widget.onAdd,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add'),
               ),
               const SizedBox(width: 12),
               DropdownButton<AssetType>(
@@ -87,19 +138,24 @@ class _FurnitureTableState extends State<FurnitureTable> {
                 child: SingleChildScrollView(
                   child: DataTable(
                     headingRowHeight: 52,
-                    dataRowHeight: 52,
-                    headingRowColor: MaterialStateProperty.all(const Color(0xfff3f4f6)),
+                    dataRowMinHeight: 52,
+                    dataRowMaxHeight: 52,
+                    headingRowColor: WidgetStateProperty.all(const Color(0xfff3f4f6)),
                     columns: const [
                       DataColumn(
                           label: Text('Name', style: TextStyle(fontWeight: FontWeight.w700))),
                       DataColumn(
                           label: Text('Category', style: TextStyle(fontWeight: FontWeight.w700))),
                       DataColumn(
-                          label: Text('Date Arrived', style: TextStyle(fontWeight: FontWeight.w700))),
+                          label: Text('Date Registered', style: TextStyle(fontWeight: FontWeight.w700))),
                       DataColumn(
                           label: Text('Date Removed', style: TextStyle(fontWeight: FontWeight.w700))),
                       DataColumn(
+                          label: Text('Removed at', style: TextStyle(fontWeight: FontWeight.w700))),
+                      DataColumn(
                           label: Text('Location', style: TextStyle(fontWeight: FontWeight.w700))),
+                      DataColumn(
+                          label: Text('Actions', style: TextStyle(fontWeight: FontWeight.w700))),
                     ],
                     rows: _items
                         .map(
@@ -109,7 +165,22 @@ class _FurnitureTableState extends State<FurnitureTable> {
                               DataCell(Text(asset.category)),
                               DataCell(Text(asset.dateArrived)),
                               DataCell(Text(asset.dateRemoved)),
+                              DataCell(Text(asset.removedAtText)),
                               DataCell(Text(asset.location)),
+                              DataCell(Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 18),
+                                    tooltip: 'Edit',
+                                    onPressed: () => widget.onEdit(asset),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, size: 18),
+                                    tooltip: 'Delete',
+                                    onPressed: () => _confirmDelete(asset),
+                                  ),
+                                ],
+                              )),
                             ],
                           ),
                         )

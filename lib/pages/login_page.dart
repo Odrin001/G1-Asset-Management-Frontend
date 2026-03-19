@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!validateEmail(email)) return;
 
     // Simulated login
-    print("Login success: $email");
+    debugPrint("Login success: $email");
 
     // Navigate to dashboard (simulated successful login)
     Navigator.of(context).pushReplacement(
@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(26),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               )

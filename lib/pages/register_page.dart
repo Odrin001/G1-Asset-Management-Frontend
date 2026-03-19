@@ -59,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     // TODO: Replace this with real registration logic.
-    print("Register success: $name <$email>");
+    debugPrint("Register success: $name <$email>");
 
     // After successful registration, return to login.
     Navigator.of(context).pop();
@@ -78,7 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(26),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               )

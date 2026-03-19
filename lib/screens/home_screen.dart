@@ -1,62 +1,82 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../utils/api.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final _txtEmailController = TextEditingController();
   final _txtPasswordController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    TextFormField txtEmail = TextFormField(
-      decoration: InputDecoration(labelText: 'School Email'),
-      keyboardType: TextInputType.emailAddress,
-      controller: _txtEmailController,
-      textInputAction: TextInputAction.next
+  void dispose() {
+    _txtEmailController.dispose();
+    _txtPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final success = await API().login(
+      email: _txtEmailController.text,
+      password: _txtPasswordController.text,
     );
 
-    TextFormField txtPassword = TextFormField(
-      decoration: InputDecoration(labelText: 'Password'),
+    if (!mounted) return;
+
+    final snackBar = SnackBar(
+      content: Text(
+        success ? 'You have logged in successfully' : 'Login failed. Please check your credentials.',
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final txtEmail = TextFormField(
+      decoration: const InputDecoration(labelText: 'School Email'),
+      keyboardType: TextInputType.emailAddress,
+      controller: _txtEmailController,
+      textInputAction: TextInputAction.next,
+    );
+
+    final txtPassword = TextFormField(
+      decoration: const InputDecoration(labelText: 'Password'),
       obscureText: true,
       keyboardType: TextInputType.text,
       controller: _txtPasswordController,
-      textInputAction: TextInputAction.done
+      textInputAction: TextInputAction.done,
     );
 
-    Container btnLogin = Container(
+    final btnLogin = Container(
       width: double.infinity,
-      margin: EdgeInsets.only(top: 10.0),
+      margin: const EdgeInsets.only(top: 10.0),
       child: ElevatedButton(
-        onPressed: () {
-          API().login(
-            email: _txtEmailController.text,
-            password: _txtPasswordController.text
-          ).then((value) {
-            if (value == true) {
-              const snackBar = SnackBar(content: Text('You have logged in successfully'));
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }
-          });
-        },
-        child: Text('Login')
-      )
+        onPressed: _handleLogin,
+        child: const Text('Login'),
+      ),
     );
 
-    TextButton btnForgotPassword = TextButton(
+    final btnForgotPassword = TextButton(
       onPressed: () {
         // TODO: Implement forgot password functionality
       },
-      child: Text('Forgot Password?')
+      child: const Text('Forgot Password?'),
     );
 
-    TextButton btnSignUp = TextButton(
+    final btnSignUp = TextButton(
       onPressed: () {
         Navigator.pushNamed(context, '/register');
       },
-      child: Text('Sign Up')
+      child: const Text('Sign Up'),
     );
 
-    Form formLogin = Form(
+    final formLogin = Form(
       child: Column(
         children: [
           txtEmail,
@@ -66,21 +86,21 @@ class HomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Don\'t have an account? '),
-              btnSignUp
-            ]
-          )
-        ]
-      )
+              const Text('Don\'t have an account? '),
+              btnSignUp,
+            ],
+          ),
+        ],
+      ),
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: Container(
         width: double.infinity,
-        margin: EdgeInsets.only(top: 30.0, left: 10.0, right: 10.0),
-        child: formLogin
-      )
+        margin: const EdgeInsets.only(top: 30.0, left: 10.0, right: 10.0),
+        child: formLogin,
+      ),
     );
   }
 }

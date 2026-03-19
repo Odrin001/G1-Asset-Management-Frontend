@@ -38,7 +38,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!validateEmail(email)) return;
 
     // TODO: Replace this with real OTP sending logic.
-    print("Send OTP to: $email");
+    debugPrint("Send OTP to: $email");
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("OTP sent. Check your email.")),
@@ -58,7 +58,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withAlpha(26),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               )

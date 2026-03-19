@@ -40,7 +40,7 @@ class Sidebar extends StatelessWidget {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'AssetsDigital',
+                      'AssetTrack',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -113,7 +113,7 @@ class _SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: active ? Colors.white.withOpacity(0.12) : Colors.transparent,
+      color: active ? Colors.white.withAlpha(31) : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
