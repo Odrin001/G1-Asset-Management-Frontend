@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -32,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     return true;
   }
 
-  void handleLogin() {
+  void handleLogin() async {
     String email = emailController.text.trim();
     String password = passwordController.text;
 
@@ -45,13 +47,34 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!validateEmail(email)) return;
 
-    // Simulated login
-    debugPrint("Login success: $email");
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:5000/api/auth/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email,
+          "password": password,
+        }),
+      );
 
-    // Navigate to dashboard (simulated successful login)
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const DashboardPage()),
-    );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // SUCCESS
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
+        );
+      } else {
+        // ERROR
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Login failed")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server error")),
+      );
+    }
   }
 
   @override

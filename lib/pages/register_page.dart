@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -32,7 +34,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return true;
   }
 
-  void handleRegister() {
+  void handleRegister() async {
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
@@ -58,13 +60,36 @@ class _RegisterPageState extends State<RegisterPage> {
       passwordError = '';
     });
 
-    // TODO: Replace this with real registration logic.
-    debugPrint("Register success: $name <$email>");
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:5000/api/auth/register"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": name,
+          "email": email,
+          "password": password,
+        }),
+      );
 
-    // After successful registration, return to login.
-    Navigator.of(context).pop();
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration successful")),
+        );
+
+        Navigator.of(context).pop(); // back to login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Registration failed")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server error")),
+      );
+    }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

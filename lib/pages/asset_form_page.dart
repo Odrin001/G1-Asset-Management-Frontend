@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/asset_item.dart';
 
@@ -37,6 +39,7 @@ class _AssetFormPageState extends State<AssetFormPage> {
   late TextEditingController _locationController;
   late TextEditingController _dateArrivedController;
   late TextEditingController _dateRemovedController;
+  late TextEditingController _uidController;
 
   bool get _isEditing => widget.existingAsset != null;
 
@@ -51,6 +54,7 @@ class _AssetFormPageState extends State<AssetFormPage> {
     _locationController = TextEditingController(text: widget.existingAsset?.location ?? '');
     _dateArrivedController = TextEditingController(text: widget.existingAsset?.dateArrived ?? '');
     _dateRemovedController = TextEditingController(text: widget.existingAsset?.dateRemoved ?? '');
+    _uidController = TextEditingController();
   }
 
   @override
@@ -60,33 +64,57 @@ class _AssetFormPageState extends State<AssetFormPage> {
     _locationController.dispose();
     _dateArrivedController.dispose();
     _dateRemovedController.dispose();
+    _uidController.dispose();
     super.dispose();
   }
 
-  void _save() {
+  void _save() async {
     final name = _nameController.text.trim();
     final category = _categoryController.text.trim();
     final location = _locationController.text.trim();
     final dateArrived = _dateArrivedController.text.trim();
     final dateRemoved = _dateRemovedController.text.trim();
+    final uid = _uidController.text.trim();
 
-    if (name.isEmpty || category.isEmpty || location.isEmpty || dateArrived.isEmpty) {
+    if (name.isEmpty || category.isEmpty || location.isEmpty || dateArrived.isEmpty || uid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in at least name, category, location and date registered.')),
+        const SnackBar(content: Text('Please fill all required fields including UID.')),
       );
       return;
     }
 
-    final asset = AssetItem(
-      id: widget.existingAsset?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name,
-      category: category,
-      location: location,
-      dateArrived: dateArrived,
-      dateRemoved: dateRemoved,
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:5000/api/assets"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name": name,
+          "category": category,
+          "location": location,
+          "dateRegistered": dateArrived,
+          "dateRemoved": dateRemoved,
+          "uid": uid,
+        }),
+      );
 
-    Navigator.of(context).pop(AssetFormResult.save(asset, _type));
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Asset registered successfully")),
+        );
+
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Error")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Connection error: $e")),
+      );
+    }
   }
 
   void _confirmDelete() async {
@@ -171,6 +199,15 @@ class _AssetFormPageState extends State<AssetFormPage> {
               label: 'Date Removed (optional)',
               hint: 'dd-MM-yyyy or dd-MM-yyyy hh:mma',
             ),
+            const SizedBox(height: 12),
+
+            // ✅ UID FIELD (NEW)
+            _buildTextField(
+              controller: _uidController,
+              label: 'RFID UID',
+              hint: 'Scan or enter UID',
+            ),
+
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
